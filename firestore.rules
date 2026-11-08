@@ -1,0 +1,118 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isInitialOwner() {
+      return isSignedIn() && request.auth.token.email == 'yahy38989@gmail.com';
+    }
+
+    function getAdminDoc() {
+      return get(/databases/$(database)/documents/administrators/$(request.auth.uid));
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        isInitialOwner() ||
+        (exists(/databases/$(database)/documents/administrators/$(request.auth.uid)) &&
+         getAdminDoc().data.isActive == true)
+      );
+    }
+
+    function isSuperAdmin() {
+      return isSignedIn() && (
+        isInitialOwner() ||
+        (isAdmin() && getAdminDoc().data.role == 'super_admin')
+      );
+    }
+
+    function isUserManager() {
+      return isSuperAdmin() || (isAdmin() && getAdminDoc().data.role == 'user_manager');
+    }
+
+    function isTemplateModerator() {
+      return isSuperAdmin() || (isAdmin() && getAdminDoc().data.role == 'template_moderator');
+    }
+
+    function isCreatorManager() {
+      return isSuperAdmin() || (isAdmin() && getAdminDoc().data.role == 'creator_manager');
+    }
+
+    function isSupportAdmin() {
+      return isSuperAdmin() || (isAdmin() && getAdminDoc().data.role == 'support_admin');
+    }
+
+    function isValidTimestamp(val) {
+      return val is timestamp && val <= request.time;
+    }
+
+    // Administrator Collection
+    match /administrators/{adminId} {
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == adminId);
+      allow create: if isSuperAdmin() || (isInitialOwner() && request.auth.uid == adminId);
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin() && adminId != request.auth.uid;
+    }
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+      allow create: if isSignedIn() && (request.auth.uid == userId || isUserManager());
+      allow update: if (isSignedIn() && request.auth.uid == userId) || isUserManager();
+      allow delete: if isSuperAdmin();
+
+      match /cvs/{cvId} {
+        allow read: if (isSignedIn() && request.auth.uid == userId) || isAdmin();
+        allow create, update, delete: if isSignedIn() && request.auth.uid == userId;
+      }
+    }
+
+    // Creator Applications Collection
+    match /creator_applications/{applicationId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn() && (request.resource.data.userId == request.auth.uid || isCreatorManager());
+      allow update: if isCreatorManager();
+      allow delete: if isSuperAdmin();
+    }
+
+    // Templates Catalog
+    match /templates/{templateId} {
+      allow read: if isAdmin() || (resource.data.status == 'approved') || (isSignedIn() && resource.data.creatorId == request.auth.uid);
+      allow create: if isSignedIn() && (isTemplateModerator() || request.resource.data.creatorId == request.auth.uid);
+      allow update: if isTemplateModerator() || (isSignedIn() && resource.data.creatorId == request.auth.uid);
+      allow delete: if isSuperAdmin();
+    }
+
+    // Reports & Complaints
+    match /reports/{reportId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.reporterId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.reporterId == request.auth.uid;
+      allow update: if isSupportAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    // Audit Logs (Immutable append-only for admins)
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && request.resource.data.adminId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    // Global App Settings
+    match /app_settings/{settingId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSuperAdmin();
+      allow delete: if false;
+    }
+
+    // System Notifications
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn();
+      allow create: if isAdmin();
+      allow update, delete: if isSuperAdmin();
+    }
+  }
+}
