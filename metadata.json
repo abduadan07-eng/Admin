@@ -1,0 +1,6 @@
+{
+  "name": "CV Maker Super Admin",
+  "description": "Executive management and moderation console for the CV Maker platform",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,203 @@
+{
+  "entities": {
+    "administrator": {
+      "title": "Administrator",
+      "description": "Administrator account with role-based permissions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["super_admin", "user_manager", "template_moderator", "creator_manager", "support_admin", "finance_manager"] },
+        "permissions": { "type": "array" },
+        "isActive": { "type": "boolean" },
+        "assignedBy": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "role", "isActive", "createdAt"]
+    },
+    "user": {
+      "title": "User",
+      "description": "CV Maker registered user record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "status": { "type": "string", "enum": ["active", "suspended", "banned"] },
+        "suspensionReason": { "type": "string" },
+        "isCreator": { "type": "boolean" },
+        "cvCount": { "type": "integer" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastActiveAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "email", "status", "createdAt"]
+    },
+    "cv": {
+      "title": "CV",
+      "description": "User CV document record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "title": { "type": "string" },
+        "templateId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "title", "createdAt"]
+    },
+    "creator_application": {
+      "title": "CreatorApplication",
+      "description": "Application submitted by a user to become a template creator",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "applicantName": { "type": "string" },
+        "applicantEmail": { "type": "string" },
+        "portfolioUrl": { "type": "string" },
+        "experience": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "suspended"] },
+        "rejectionReason": { "type": "string" },
+        "reviewedBy": { "type": "string" },
+        "reviewedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "userId", "applicantName", "applicantEmail", "status", "createdAt"]
+    },
+    "template": {
+      "title": "Template",
+      "description": "Community and curated CV template available in library",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "category": { "type": "string" },
+        "thumbnailUrl": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "creatorName": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected", "suspended"] },
+        "rejectionReason": { "type": "string" },
+        "downloadsCount": { "type": "integer" },
+        "rating": { "type": "number" },
+        "isPremium": { "type": "boolean" },
+        "price": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "title", "creatorId", "status", "createdAt"]
+    },
+    "report": {
+      "title": "Report",
+      "description": "User report or complaint regarding template, creator, or behavior",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "reporterId": { "type": "string" },
+        "reporterEmail": { "type": "string" },
+        "targetType": { "type": "string", "enum": ["template", "creator", "user", "general"] },
+        "targetId": { "type": "string" },
+        "targetTitle": { "type": "string" },
+        "reason": { "type": "string" },
+        "description": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "under_review", "resolved", "rejected"] },
+        "resolutionNotes": { "type": "string" },
+        "resolvedBy": { "type": "string" },
+        "resolvedAt": { "type": "string", "format": "date-time" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "reporterId", "targetType", "targetId", "reason", "status", "createdAt"]
+    },
+    "audit_log": {
+      "title": "AuditLog",
+      "description": "Immutable log of administrative activities and moderation actions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "adminId": { "type": "string" },
+        "adminEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetType": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "adminId", "adminEmail", "action", "targetId", "targetType", "timestamp"]
+    },
+    "app_settings": {
+      "title": "AppSettings",
+      "description": "Global application configuration settings",
+      "type": "object",
+      "properties": {
+        "maintenanceMode": { "type": "boolean" },
+        "announcementText": { "type": "string" },
+        "announcementActive": { "type": "boolean" },
+        "communitySubmissionsEnabled": { "type": "boolean" },
+        "supportEmail": { "type": "string" },
+        "appVersion": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "updatedBy": { "type": "string" }
+      },
+      "required": ["maintenanceMode", "announcementActive", "communitySubmissionsEnabled"]
+    },
+    "notification": {
+      "title": "Notification",
+      "description": "System broadcast or targeted notification record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "body": { "type": "string" },
+        "targetAudience": { "type": "string", "enum": ["all", "creators", "specific_user"] },
+        "targetUserId": { "type": "string" },
+        "sentBy": { "type": "string" },
+        "sentAt": { "type": "string", "format": "date-time" },
+        "deliveryCount": { "type": "integer" }
+      },
+      "required": ["id", "title", "body", "targetAudience", "sentBy", "sentAt"]
+    }
+  },
+  "firestore": {
+    "/administrators/{adminId}": {
+      "schema": { "$ref": "#/entities/administrator" },
+      "description": "Administrator profiles and role assignments"
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/user" },
+      "description": "Registered CV Maker users"
+    },
+    "/users/{userId}/cvs/{cvId}": {
+      "schema": { "$ref": "#/entities/cv" },
+      "description": "CV documents authored by a user"
+    },
+    "/creator_applications/{applicationId}": {
+      "schema": { "$ref": "#/entities/creator_application" },
+      "description": "Creator applications submitted by candidates"
+    },
+    "/templates/{templateId}": {
+      "schema": { "$ref": "#/entities/template" },
+      "description": "CV templates catalog"
+    },
+    "/reports/{reportId}": {
+      "schema": { "$ref": "#/entities/report" },
+      "description": "User reports and complaints"
+    },
+    "/audit_logs/{logId}": {
+      "schema": { "$ref": "#/entities/audit_log" },
+      "description": "Administrative audit trail logs"
+    },
+    "/app_settings/{settingId}": {
+      "schema": { "$ref": "#/entities/app_settings" },
+      "description": "Global app configuration settings"
+    },
+    "/notifications/{notificationId}": {
+      "schema": { "$ref": "#/entities/notification" },
+      "description": "Announcements and notifications sent by admins"
+    }
+  }
+}
